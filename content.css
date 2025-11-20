@@ -1,0 +1,19 @@
+/* The tinted blur effect */
+.blur-tinted {
+    filter: blur(5px);
+    position: relative;
+    overflow: hidden;
+}
+
+.blur-tinted::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 0, 150, 0.25),
+        rgba(0, 120, 255, 0.25)
+    );
+    mix-blend-mode: screen;
+}
