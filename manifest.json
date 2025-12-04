@@ -21,5 +21,12 @@
       "js": ["content.js"],
       "matches": ["https://mail.google.com/*"]
     }
+  ],
+
+  "web_accessible_resources": [
+    {
+      "resources": ["images/*.png"],
+      "matches": ["<all_urls>"]
+    }
   ]
 }

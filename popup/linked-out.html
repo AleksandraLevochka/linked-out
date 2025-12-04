@@ -1,20 +1,43 @@
 <html>
   <head>
     <link rel="stylesheet" href="style.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
   </head>
 
   <body>
-    <h1>LinkedOut</h1>
+    <h1 class="h1">LinkedOut</h1>
 
     <img id="characterIcon" src="../images/happy.png" class="character"></img>
 
-    <label class="switch">
-      <input type="checkbox">
-      <span class="slider round"></span>
-    </label>
+    <h2 class="h2">CHOOSE YOUR MODE</h2>
+
+    <!-- drop down menu -->
+
+    <div class="dropdown-container">
+      <select id="modeSelect" class="dropdown" required>
+        <option value="" disabled selected hidden>SELECT</option>
+        <option value="soft">SOFT BLUR</option>
+        <option value="haze">HAZE GLOW</option>
+        <option value="naughty">NAUGHTY</option>
+      </select>
+    </div>
+
+    <!-- toggle switch to turn on/off -->
+
+    <div class="toggle-container">
+      <label class="switch">
+        <input type="checkbox" id="mainToggle">
+        <span class="slider round"></span>
+      </label>
+    </div>
 
 
     <script src="popup.js"></script>
   </body>
+
+
 </html>
 

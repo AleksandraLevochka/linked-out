@@ -14,62 +14,199 @@ const blurOut = [
     "jobs-listings@linkedin.com"
 ];
 
-// start a function that blurs emails coming from LinkedIn Job Alert IF toggle is on
-function blurLinkedInEmails () {
+// Apply effect depending on selected mode
+function applyEffectToRow(row, mode) {
 
-    // now check if the toggle is on from storage. If it's OFF, remove blur and stop
-    chrome.storage.sync.get("blurEnabled", ({blurEnabled}) => {
+    if (mode === "soft") {
+        // simple blur
+        row.style.filter = "blur(3px)";
+        row.classList.remove("blur-tinted");
+        row.style.pointerEvents = "none";
+    }
+
+    if (mode === "haze") {
+        // blur + tinted overlay 
+        row.style.filter = "blur(3px)";
+        row.classList.add("blur-tinted");
+        row.style.pointerEvents = "none";
+    }
+
+    if (mode === "naughty") {
+        row.style.filter = "";
+        row.classList.remove("blur-tinted");
+    
+        // allow hover effects
+        row.classList.add("naughty-mode-row");
+    
+        // enable clicking but override default Gmail behavior
+        row.style.pointerEvents = "auto";
+    
+        // Prevent Gmail from opening email & show popup instead
+        row.addEventListener("click", (event) => {
+            event.stopImmediatePropagation();
+            event.preventDefault();
+            showNaughtyPopup();
+        }, { passive: false });
+
+    
+        // use IMPORTANT bc gmail has aggressive css that overrides stuff 
+        // Sender gmail wrapper (.bA4)
+
+        const senderWrapper = row.querySelector("span.bA4");
+        if (senderWrapper) {
+            senderWrapper.style.setProperty("color", "#bdbdbd", "important");
+            senderWrapper.style.setProperty("font-weight", "400", "important");
+        }
+    
+        // Sender inner span(.zF or .yP) 
+        const senderInner = row.querySelector("span.bA4 span.zF, span.bA4 span.yP");
+        if (senderInner) {
+            senderInner.style.setProperty("color", "#bdbdbd", "important");
+            senderInner.style.setProperty("font-weight", "400", "important");
+        }
+    
+        // Subject line (.bog)
+        const subject = row.querySelector("span.bog");
+        if (subject) {
+            subject.style.setProperty("color", "#bdbdbd", "important");
+            subject.style.setProperty("font-weight", "600", "important");
+        }
+    
+        // Body text (y2 and inner span) 
+        const preview = row.querySelector("span.y2");
+        if (preview) {
+            preview.style.setProperty("color", "#bdbdbd", "important");
+            preview.style.setProperty("font-style", "italic", "important");
+        }
+    
+        const previewInner = row.querySelector("span.y2 > span");
+        if (previewInner) {
+            previewInner.style.setProperty("color", "#bdbdbd", "important");
+            previewInner.style.setProperty("font-style", "italic", "important");
+        }
+    }
+
+    (function injectNaughtyStyles() {
+        if (document.getElementById("naughty-style")) return;
+    
+        const style = document.createElement("style");
+        style.id = "naughty-style";
+        style.textContent = `
+            tr.naughty-mode-row span.zF,
+            tr.naughty-mode-row span.yP {
+                color: #bdbdbd !important;
+                font-weight: 400 !important;
+            }
+    
+            tr.naughty-mode-row span.bog {
+                color: #bdbdbd4 !important;
+                font-weight: 400 !important;
+            }
+    
+            tr.naughty-mode-row span.y2,
+            tr.naughty-mode-row span.y2 > span {
+                color: #bdbdbd !important;
+                font-style: italic !important;
+            }
+        `;
+        document.head.appendChild(style);
+    })();
+
+    function showNaughtyPopup() {
+
+        // Remove old popup if exists
+        const existing = document.getElementById("naughty-popup");
+        if (existing) existing.remove();
+    
+        // image path
+        const imgSrc = chrome.runtime.getURL("images/gotcha.png");
+    
+        //  overlay
+        const overlay = document.createElement("div");
+        overlay.id = "naughty-popup";
+        overlay.innerHTML = `
+            <div class="naughty-popup-content">
+                <span class="naughty-close-btn">&times;</span>
+                <img src="${imgSrc}" class="naughty-img">
+                <p class="naughty-text">🫵 Gotcha 🫵<br> Go touch some grass.<br>Seriously.</p>
+            </div>
+        `;
+    
+        document.body.appendChild(overlay);
+    
+        // Close btn logic
+        overlay.querySelector(".naughty-close-btn").addEventListener("click", () => {
+            overlay.remove();
+        });
+    }        
+    
+}
+
+// Start a function that blurs emails coming from LinkedIn job alerts IF toggle is on
+function blurLinkedInEmails() {
+
+    chrome.storage.sync.get(["blurEnabled", "mode"], ({ blurEnabled, mode }) => {
+
+        // If toggle is OFF, remove blur and stop
         if (!blurEnabled) {
             removeBlur();
             return;
         }
 
-    // now select all rows in the gmail, it's a table so "tr"
-    const rows = document.querySelectorAll("tr.zA");  
+        // If no mode selected yet, do nothing
+        if (!mode) return;
 
-    // now go through each row and specifc span and check whether my specific sender exists. if yes, apply style
-    rows.forEach(row => {
+        // Select all Gmail rows
+        const rows = document.querySelectorAll("tr.zA");
 
-        const sender = row.querySelector("span.yP, span.zF"); 
+        rows.forEach(row => {
+            const sender = row.querySelector("span.yP, span.zF");
 
-        if (sender && blurOut.includes(sender.getAttribute("email"))) {
+            if (sender && blurOut.includes(sender.getAttribute("email"))) {
 
-            row.style.filter = "blur(5px)";
-            row.style.position = "relative"; 
-            row.style.overflow = "hidden"; 
+                // Apply correct effect depending on mode
+                applyEffectToRow(row, mode);
 
-            row.style.setProperty (
-                "--tint",
-                "linear-gradient(135deg, rgba(255, 0, 150, 0.25), rgba(0, 120, 255, 0.25))"
-            );
-
-            row.classList.add("blur-tinted");
-            
-            row.style.pointerEvents = "none"; // this disables clicking but idk if i wanna include it yet 
-        }
-
+                // optional disabling of clicking
+                // row.style.pointerEvents = "none";
+            }
         });
-
     });
 }
 
-// function to remove blur effect when toggle is off
-function removeBlur () {
-    const rows = document.querySelectorAll ("tr");
+// Function to remove blur effect when toggle is off
+function removeBlur() {
+    const rows = document.querySelectorAll("tr");
 
     rows.forEach(row => {
-        row.style.filter = ""; 
+        row.style.filter = "";
+        row.classList.remove("blur-tinted");
         row.style.pointerEvents = "";
 
+        // Reset naughty mode colors
+        const sender = row.querySelector("span.yP, span.zF");
+        if (sender) {
+            sender.style.color = "";
+            const innerSender = sender.querySelector("span");
+            if (innerSender) innerSender.style.color = "";
+        }
+
+        const subject = row.querySelector("span.bog");
+        if (subject) {
+            subject.style.color = "";
+            const innerSubject = subject.querySelector("span");
+            if (innerSubject) innerSubject.style.color = "";
+        }
     });
 }
 
-const observer = new MutationObserver (() => {
+// Observe Gmail DOM changes
+const observer = new MutationObserver(() => {
     blurLinkedInEmails();
 });
 
-// Observe changes in Gmail's body subtree
 observer.observe(document.body, { childList: true, subtree: true });
 
+// Run on initial load
 blurLinkedInEmails();
 
