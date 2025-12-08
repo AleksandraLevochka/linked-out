@@ -21,7 +21,7 @@
 /* When row has naughty mode AND you hover it */
 .naughty-mode-row:hover {
     font-size: 12px !important;  
-    opacity: 0.9 !important;
+    opacity: 0.9 !important; 
 }
 
 /* Make sure nested spans also scale bc Gmail often overrides */

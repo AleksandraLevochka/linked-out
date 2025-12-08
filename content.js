@@ -86,6 +86,8 @@ function applyEffectToRow(row, mode) {
         }
     }
 
+    // needed to add this styles separately because gmail kept overriding my style for email sender especially 
+    
     (function injectNaughtyStyles() {
         if (document.getElementById("naughty-style")) return;
     
